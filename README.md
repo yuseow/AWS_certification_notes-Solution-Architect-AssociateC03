@@ -6,11 +6,11 @@
 
 |Type | Features | Potential Use Cases|
 |-----|----------|---------------------|
-| General purpose instances | equal compute, memory, storage | general applications (e.g. web servers, code repositories) |
-| Compute optimised instances | ideal for compute-bound applications that need high-performance processors. Good to use them for batch processing workloads that require processing many transactions in a single group | more compute extensive operations (e.g.  high-performance web servers, high performance computing (HPC), compute-intensive applications servers, and dedicated gaming servers, scientific modeling)|
-| Memory optimised instances | more memory optimised, good for applications that are larger and need more memory | Workloads that requires large amounts of data to be pre-loaded before running, e.g .high performance database, large machine learning models, high-performance database |
+| General purpose instances | equal compute, memory, storage (normal 1 CPU : 4 GiB memory)| general applications (e.g. web servers, code repositories) |
+| Compute optimised instances | ideal for compute-bound applications that need high-performance processors. Good to use them for batch processing workloads that require processing many transactions in a single group (normal 1 CPU : ~2 GiB memory) | more compute extensive operations (e.g.  high-performance web servers, high performance computing (HPC), compute-intensive applications servers, and dedicated gaming servers, scientific modeling)|
+| Memory optimised instances | more memory optimised, good for applications that are larger and need more memory (e.g. 1 CPU : 8 or more GiB memory)| Workloads that requires large amounts of data to be pre-loaded before running, e.g .high performance database, large machine learning models, high-performance database |
 | Accelerated computing instances | utilises hardware accelerators, or coprocessors, to perform some functions more efficiently than is possible in software running on CPUs (using GPUs too?) | floating-point number calculations, graphics processing, and data pattern matching (e.g. graphics applications, game streaming, and application streaming)|
-| Storage optimised instances | handle high, sequential read and writ access to large datasets on local storage | distributed file systems, data warehousing applications, high frequency online transaction processing (OLTP) systems |
+| Storage optimised instances | handle high, sequential read and write access to large datasets on local storage | distributed file systems, data warehousing applications, high frequency online transaction processing (OLTP) systems |
 
 - Types of pricing:
   
@@ -39,3 +39,41 @@ Single point of contact for all incoming web traffic to the Auto Scaling group. 
 - To reduce dependencies. monolithic application (components are highly interdependent) vs microservices (more loosely coupled and robust)
 - SQS: send, store, received messages/payloads between software components at any volume. messages are placed until processed
 - SNS: can send notification between services and also to end-users. through publish/subscribe model 
+
+## Serverless (more hands-free approach than EC2 - no need to provision or manage servers)
+- AWS Lambda (good for short, quick processing): Just deploy code and it will run when there is a trigger. Runs within 15min before timeout (not suitable for long scripts). Good for service-oriented or event driven applications. No need to manage/provision servers
+- AWS Elastic Container Service (ECS): docker based
+- Amazon Elastic Kubernetes Service (EKS): run kubernetes
+- AWS Fargate: Container orchestration platform, serverless compute engine for containers. It works with both Amazon ECS and Amazon EKS
+
+## AWS Infrastructure:
+### Region
+- Geographically isolated areas
+- Each region can have 1 or more Availability Zones (3 or more?)
+
+Factors to look at:
+1. Compliance: location-specific data regulations
+2. Proximity / Latency: where are your customers mainly at
+3. Feature availability: not all features you need are available in the region you want
+4. Pricing: some locations are more expensive to operate in (e.g. Brazil's tax structure makes it more expensive to operate, even though the features are the same)
+
+### Availability Zones (AZ)
+- A single data centre or a group of them is an AZ. 1 region can have multiple AZ
+- Best practice: run 2 or more AZ in the same region
+
+## Content Delivery Network (CDN) - AWS' CDN is called Amazon CloudFront, & Domain Name Service (DNS) - AWS's called Route 53
+- Delivers data (or video, audio etc) with low latency and high transfer speeds
+- CloudFront has "Edge Locations" (different from regions), that you can use to distribute data
+
+## AWS Outpost 
+- Fully operational mini Region inside client's own data centre that's owned and operated by AWS and 100% AWS functionality but isolate in clients' own environment
+
+## AWS Provisioning and Management
+- AWS Management Console (Manual but good interface to point and click)
+- AWS CLI
+- AWS SDK
+- AWS Elastic Beanstalk: provide code and configuration settings, deploys resources necessary to perform capacity adjustment, load balancing, automatic scaling, application health monitoring
+- AWS CloudFormation:  treat your infrastructure as code, can build an environment by writing lines of code. Provisions  resources in a safe, repeatable manner, enabling you to frequently build your infrastructure and applications without having to perform manual actions. It determines the right operations to perform when managing your stack and rolls back changes automatically if it detects errors.
+
+## Amazon Virtual Private Cloud (VPC) aka VPN
+- VPC provisions an isolated section of the AWS cloud. Within a virtual private cloud (VPC), resources can be organised into subnets. A subnet is a section of a VPC that can contain resources such as Amazon EC2 instances.
