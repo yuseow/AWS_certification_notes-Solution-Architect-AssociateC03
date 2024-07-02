@@ -60,6 +60,7 @@ Factors to look at:
 ### Availability Zones (AZ)
 - A single data centre or a group of them is an AZ. 1 region can have multiple AZ
 - Best practice: run 2 or more AZ in the same region
+![region_az](images/region_az.png)
 
 ## Content Delivery Network (CDN) - AWS' CDN is called Amazon CloudFront, & Domain Name Service (DNS) - AWS's called Route 53
 - Delivers data (or video, audio etc) with low latency and high transfer speeds
@@ -77,3 +78,57 @@ Factors to look at:
 
 ## Amazon Virtual Private Cloud (VPC) aka VPN
 - VPC provisions an isolated section of the AWS cloud. Within a virtual private cloud (VPC), resources can be organised into subnets. A subnet is a section of a VPC that can contain resources such as Amazon EC2 instances.
+- In a VPC, subnets are separate areas that are used to group together resources.
+![VPC](images/VPC.png)
+- Can configure subnets of the VPCs to be private (only allow traffic in from an internal network, need VPC) or public facing (can access from the public). 
+- However just setting it to be private might not be totally safe because though they are private and they are encrypted, they still use a regular internet connection that has bandwidth that is being shared by many people using the internet. **AWS Direct Connect** is another service that allows user to establish a completely private, dedicated fiber connection from the data centre to AWS. 
+  - AWS Direct Connect works with local partners in the user's region
+  - AWS Direct Connect provides a physical line that connects your network to your AWS VPC, can help with high regulatory and compliance needs and sidestep any potential bandwidth issues.
+- One VPC might have multiple types of gateways attached for multiple types of resources all residing in the same VPC, just in different subnets. 
+![AWS_direct_connect](images/AWS_direct_connect.png)
+- A subnet is a section of a VPC in which you can group resources based on security or operational needs. Subnets can be public or private.
+  - Public subnets contain resources that need to be accessible by the public, such as an online store’s website.
+  - Private subnets contain resources that should be accessible only through your private network, such as a database that contains customers’ personal information and order histories. 
+  - In a VPC, subnets can communicate with each other. e.g. an application that involves Amazon EC2 instances in a public subnet can communicate with databases that are located in a private subnet.
+
+## Security
+- Network access control list (ACL): virtual firewall that controls inbound and outbound traffic at the **subnet** level
+  - stateless packet filtering, ACL remembers nothing (doesn't remember whether the packet enter/exit previously) and check packets that cross the subnet border each way: inbound and outbound. (think custom officer)
+  - Default allows all inbound and outbound traffic, unless you set custom rules. Custom rules default deny all until you specify which traffic to allow.
+  - All network ACL has an explicit deny rule (aka blacklist function) - if the packet does not met any of the rules on the list, it will be denied
+
+- Security Groups: Virtual firewall that controls inbound and outbound traffic at **EC2 instance** level
+  - Default denies all inbound traffic and allows all outbound traffic
+  - Can add rules to define which traffic to allow and it will deny all the rest (aka whitelist function)
+  - Stateful packet filtering, remembers the packet that exits and will allow it back in, regardless of inbound security group rules.
+
+![ACL_security_group](images/ACL_security_group.png)
+
+## AWS' Global Networking (CDN and DNS services)
+- **AWS Route 53**: AWS's DNS
+- **AWS Cloudfront**: AWS' CDN
+  - Content Delivery Network (CDN): A network that delivers edge content to users based on their Geographical location. Improves latency
+  - Edge locations is a site that the AWS CloudFront uses to store cached copies of the content for faster delivery to the customers (aka a node)
+![cdn_dns](images/cdn_dns.png)
+
+## Data Storage
+- EC2 has hard drives (called instance store) but they are ephemeral and will disappear after the EC2 instance is terminated. Cause it might not always be the same EC2 host that will service your application.
+- **AWS Elastic Block Store (EBS)**: Separate storage drives that are persistent across different EC2. Can customise the size, type, configurations.
+  - Has "snapshots" which are incremental backups. Incremental backup means that the first backup taken of a volume copies all the data. For subsequent backups, only the blocks of data that have changed since the most recent snapshot are saved. (think G-slides that only save the snapshot of the changes) 
+- **AWS Simple Storage Service(S3)**: store and retrieve virtually unlimited amount of data at any scale
+  - file: object, buckets: folder. can create multiple buckets and store objects across different classes or tiers of data
+  - max file size for an object: 5TB
+  - can version objects to protect them from accidental deletion (will retain previous versions)
+  - can tier based on frequency of retrieval of the data (e.g between frequent extraction and audit data)
+  - each object consists of data, metadata, and a key. The data might be an image, video, text document, or any other type of file. Metadata contains information about what the data is, how it is used, the object size, and so on. An object’s key is its unique identifier.
+  - S3's durability is 99.99999999999% (11 9s), aka the probability it will be available within a year
+  - When selecting a storage class, consider 2 factors:
+    - how often you plan to retrieve the data
+    - how available you need the data to be
+
+|Storage Class|Information|
+|------|-------|
+|S3 Standard| - Designed for frequently accessed data <br/> -stores data in minimum 3 Availability zones <br/><br/>good choice for a wide range of use cases, such as websites, content distribution, and data analytics. Amazon S3 Standard has a higher cost than other storage classes intended for infrequently accessed data and archival storage. |
+|S3 Standard-Infrequent Access (Standard-IA) | - Ideal for infrequently accessed data<br/> - Similar to Amazon S3 Standard but has a lower storage price and higher retrieval price<br/><br/> Ideal for data infrequently accessed but requires high availability when needed. Both Amazon S3 Standard and Amazon S3 Standard-IA store data in a minimum of three Availability Zones. Amazon S3 Standard-IA provides the same level of availability as Amazon S3 Standard but with a lower storage price and a higher retrieval price. | 
+| S3 One Zone-Infrequent Access (S3 One Zone-IA) | - stores data in a single Availability Zone </br>- Has a lower price than S3 Standard-IA </br></br> Only stores data in a single Availability Zone (AZ). Good if you want to save costs on storage and you can easily reproduce your data in the event of an AZ failure. |
+|S3 Intelligent-Tiering |- ideal for data with unknown or changing access patterns </br>- Requires a small monthly monitoring and automation fee **per object** </br></br> Amazon S3 monitors objects’ access patterns. If you haven’t accessed an object for 30 consecutive days, Amazon S3 automatically moves it to the infrequent access tier, S3 Standard-IA. If you access an object in the infrequent access tier, Amazon S3 automatically moves it to the frequent access tier, S3 Standard.|
