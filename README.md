@@ -115,20 +115,34 @@ Factors to look at:
 - EC2 has hard drives (called instance store) but they are ephemeral and will disappear after the EC2 instance is terminated. Cause it might not always be the same EC2 host that will service your application.
 - **AWS Elastic Block Store (EBS)**: Separate storage drives that are persistent across different EC2. Can customise the size, type, configurations.
   - Has "snapshots" which are incremental backups. Incremental backup means that the first backup taken of a volume copies all the data. For subsequent backups, only the blocks of data that have changed since the most recent snapshot are saved. (think G-slides that only save the snapshot of the changes) 
+  - Needs EC2 to write to EBS
+  - Stores delta changes of the file (so changes to the file doesn't need a full re-write of the whole file) 
+  - Good if you need to constantly edit the files
 - **AWS Simple Storage Service(S3)**: store and retrieve virtually unlimited amount of data at any scale
   - file: object, buckets: folder. can create multiple buckets and store objects across different classes or tiers of data
   - max file size for an object: 5TB
   - can version objects to protect them from accidental deletion (will retain previous versions)
+  - Good for write once read many (WORM), good for cases that a lot of people need to read the files
   - can tier based on frequency of retrieval of the data (e.g between frequent extraction and audit data)
   - each object consists of data, metadata, and a key. The data might be an image, video, text document, or any other type of file. Metadata contains information about what the data is, how it is used, the object size, and so on. An object’s key is its unique identifier.
   - S3's durability is 99.99999999999% (11 9s), aka the probability it will be available within a year
   - When selecting a storage class, consider 2 factors:
     - how often you plan to retrieve the data
     - how available you need the data to be
+  - S3 can be used for static websites (static websites can include animations or videos, just that the content doesn't update that much)
+  - S3 is web-enabled
+  - Cheaper than EBS
+  - Serveless storage (no EC2 is needed for storage to take place)
+  - Any updates to the files/objects, the whole file/object will need to rewrite (whereas EBS only stores the delta updates)
+
 
 |Storage Class|Information|
 |------|-------|
-|S3 Standard| - Designed for frequently accessed data <br/> -stores data in minimum 3 Availability zones <br/><br/>good choice for a wide range of use cases, such as websites, content distribution, and data analytics. Amazon S3 Standard has a higher cost than other storage classes intended for infrequently accessed data and archival storage. |
+|S3 Standard| - Designed for frequently accessed data <br/> - Stores data in minimum 3 Availability zones <br/><br/>Good choice for a wide range of use cases, such as websites, content distribution, and data analytics. Amazon S3 Standard has a higher cost than other storage classes intended for infrequently accessed data and archival storage. |
 |S3 Standard-Infrequent Access (Standard-IA) | - Ideal for infrequently accessed data<br/> - Similar to Amazon S3 Standard but has a lower storage price and higher retrieval price<br/><br/> Ideal for data infrequently accessed but requires high availability when needed. Both Amazon S3 Standard and Amazon S3 Standard-IA store data in a minimum of three Availability Zones. Amazon S3 Standard-IA provides the same level of availability as Amazon S3 Standard but with a lower storage price and a higher retrieval price. | 
-| S3 One Zone-Infrequent Access (S3 One Zone-IA) | - stores data in a single Availability Zone </br>- Has a lower price than S3 Standard-IA </br></br> Only stores data in a single Availability Zone (AZ). Good if you want to save costs on storage and you can easily reproduce your data in the event of an AZ failure. |
-|S3 Intelligent-Tiering |- ideal for data with unknown or changing access patterns </br>- Requires a small monthly monitoring and automation fee **per object** </br></br> Amazon S3 monitors objects’ access patterns. If you haven’t accessed an object for 30 consecutive days, Amazon S3 automatically moves it to the infrequent access tier, S3 Standard-IA. If you access an object in the infrequent access tier, Amazon S3 automatically moves it to the frequent access tier, S3 Standard.|
+| S3 One Zone-Infrequent Access (S3 One Zone-IA) | - Stores data in a single Availability Zone </br>- Has a lower price than S3 Standard-IA </br></br> Only stores data in a single Availability Zone (AZ). Good if you want to save costs on storage and you can easily reproduce your data in the event of an AZ failure. |
+|S3 Intelligent-Tiering |- Ideal for data with unknown or changing access patterns </br>- Requires a small monthly monitoring and automation fee **per object** </br></br> Amazon S3 monitors objects’ access patterns. If you haven’t accessed an object for 30 consecutive days, Amazon S3 automatically moves it to the infrequent access tier, S3 Standard-IA. If you access an object in the infrequent access tier, Amazon S3 automatically moves it to the frequent access tier, S3 Standard.|
+| S3 Glacier Instant Retrieval | - Works well for archived data that required immediate access </br>- Can retrieve objects within a few milliseconds (similar to standard) |
+| S3 Glacier Flexible Retrieval | - Low cost storage designed for data archiving </br>- Able to retrieve objects within a few minutes to hours </br></br> example usage: store archived customer records or older photots and video files that you can wait for the retrieval |
+| S3 Glacier Deep Archive | - Lowest cost object storage class ideal for archiving </br>- Able to retrieve objects within 12 hours</br></br>Good for long-term retention and digital preservation for data that might be accessed once or twice a year. Lowest cost storage in AWS, data retrieval from 12-48 hours. All objects in this storage class are replicated and stored across at least 3 geographically dispersed Availability Zones. |
+| S3 Outposts | - Creates S3 buckets on Amazon S3 outposts </br>- Makes it easier to retrieve, store, and access data on AWS Outposts </br></br> AWS S3 Outposts (on premise on the client side) delivers object storage to on-premises AWS outposts environment. Stores data durably and redundantly across multiple devices and servers on your Outposts. It works well for workloads with local data residency requirements that must satisfy demanding performance needs by keeping data close to on-premises applications. |
