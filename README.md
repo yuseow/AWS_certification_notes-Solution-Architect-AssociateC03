@@ -115,9 +115,10 @@ Factors to look at:
 - EC2 has hard drives (called instance store) but they are ephemeral and will disappear after the EC2 instance is terminated. Cause it might not always be the same EC2 host that will service your application.
 - **AWS Elastic Block Store (EBS)**: Separate storage drives that are persistent across different EC2. Can customise the size, type, configurations.
   - Has "snapshots" which are incremental backups. Incremental backup means that the first backup taken of a volume copies all the data. For subsequent backups, only the blocks of data that have changed since the most recent snapshot are saved. (think G-slides that only save the snapshot of the changes) 
-  - Needs EC2 to write to EBS
+  - Needs EC2 to write to EBS, and needs to be in the SAME AZ as the EC2
   - Stores delta changes of the file (so changes to the file doesn't need a full re-write of the whole file) 
   - Good if you need to constantly edit the files
+  - Does not automatically scale up if you need more storage though
 - **AWS Simple Storage Service(S3)**: store and retrieve virtually unlimited amount of data at any scale
   - file: object, buckets: folder. can create multiple buckets and store objects across different classes or tiers of data
   - max file size for an object: 5TB
@@ -136,7 +137,7 @@ Factors to look at:
   - Any updates to the files/objects, the whole file/object will need to rewrite (whereas EBS only stores the delta updates)
 
 
-|Storage Class|Information|
+|S3 Storage Class|Information|
 |------|-------|
 |S3 Standard| - Designed for frequently accessed data <br/> - Stores data in minimum 3 Availability zones <br/><br/>Good choice for a wide range of use cases, such as websites, content distribution, and data analytics. Amazon S3 Standard has a higher cost than other storage classes intended for infrequently accessed data and archival storage. |
 |S3 Standard-Infrequent Access (Standard-IA) | - Ideal for infrequently accessed data<br/> - Similar to Amazon S3 Standard but has a lower storage price and higher retrieval price<br/><br/> Ideal for data infrequently accessed but requires high availability when needed. Both Amazon S3 Standard and Amazon S3 Standard-IA store data in a minimum of three Availability Zones. Amazon S3 Standard-IA provides the same level of availability as Amazon S3 Standard but with a lower storage price and a higher retrieval price. | 
@@ -146,3 +147,48 @@ Factors to look at:
 | S3 Glacier Flexible Retrieval | - Low cost storage designed for data archiving </br>- Able to retrieve objects within a few minutes to hours </br></br> example usage: store archived customer records or older photots and video files that you can wait for the retrieval |
 | S3 Glacier Deep Archive | - Lowest cost object storage class ideal for archiving </br>- Able to retrieve objects within 12 hours</br></br>Good for long-term retention and digital preservation for data that might be accessed once or twice a year. Lowest cost storage in AWS, data retrieval from 12-48 hours. All objects in this storage class are replicated and stored across at least 3 geographically dispersed Availability Zones. |
 | S3 Outposts | - Creates S3 buckets on Amazon S3 outposts </br>- Makes it easier to retrieve, store, and access data on AWS Outposts </br></br> AWS S3 Outposts (on premise on the client side) delivers object storage to on-premises AWS outposts environment. Stores data durably and redundantly across multiple devices and servers on your Outposts. It works well for workloads with local data residency requirements that must satisfy demanding performance needs by keeping data close to on-premises applications. |
+
+- **AWS Elastic File System**: Auto-scaling according to the size that is needed, and allows multiple instances (aka multiple EC2, whereas EBS is 1:1) to access the data in EFS at the same time. 
+  - Auto-scales when you need more storage -  As you add and remove files, Amazon EFS grows and shrinks automatically. It can scale on demand to petabytes without disrupting applications. 
+  - Regional resource, stores data in and across multiple Availability Zones. Any EC2 in the region can access the EFS
+  - The duplicate storage enables you to access data concurrently from all the Availability Zones in the Region where a file system is located. Additionally, on-premises servers can access Amazon EFS using AWS Direct Connect.
+  - Compared to block storage (EBS) and object storage (S3), file storage is ideal for use cases in which a large number of services and resources need to access the same data at the same time.
+
+  ## AWS Relational Database Service (RDS)
+  - A managed service that automates tasks such as hardware provisioning, database setup, patching, backups, redundancy, failover, disaster recovery
+  - Different security options:
+    - encryption at rest (protecting data while it is stored)
+    - encryption in transit (protecting data while it is being sent and received)
+  - Different kinds of database engines which optimise for memory, performance, or input/output (I/O). Supported engines:
+    1. Amazon Aurora:
+      - Compatible with either MySQL and PostgreSQL
+      - 5x faster than standard MySQL, 3x faster than standard PostgreSQL
+      - 1/10th of cost of commercial databases
+      - data replication, up to 15 read replicas
+      - continuous backup to S3
+      - point-in-time recovery
+    2. PostgreSQL
+    3. MySQL
+    4. MariaDB
+    5. Oracle Database
+    6. Microsoft SQL Server
+
+## AWS DynamoDB (Nonrelational/NoSQL database)
+- Key-value pairs, data is organised into items (keys) and items have attributes (values)
+- Able to add or remove attributes from items in the table at any time. Not every item in the table has to have the same attributes
+- No need an upfront rigid DB schema
+- May not be suitable for all kinds of use case, (not suitable if you need a lot of complex joins) but use it right, it can deliver single-digit millisecond performance
+- Serverless, no need to provision, patch or manage any servers
+- Auto-scaling
+- Has petabyte scaling potential and granular API access
+
+## AWS Redshift (Data warehousing as a service)
+- Able to collect data from many sources and understand relationships and trends across your data 
+
+## AWS Database Migration Service (DMS)
+- Helps to migrate databases onto AWS
+- Has a source and target database
+- Source database can remain fully operational during the migration, hence minimising downtime for applications that rely on that database
+- Source and target database don't have to be of the same type
+  - same type of source and target database (e.g. MySQL to MySQL) is called "homogenous databases"
+  - different types of source and target database (e.g. MySQL to PostgresSQL) are called "heterogenous databases". Schema structure, data types and database code might differ, hence a 2 step process might be necessary. 1st to convert them in the AWS Schema Conversion Tool
