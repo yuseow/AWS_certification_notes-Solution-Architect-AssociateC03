@@ -104,6 +104,18 @@ Factors to look at:
 
 ![ACL_security_group](images/ACL_security_group.png)
 
+- Mechanisms to defend against Distributed Denial-of-Service attacks:
+  - Security groups (block out unwanted IPs, on a regional level?)
+  - Elastic Load Balancer (in case 1 server is held up by the slowloris attackers)
+  - **AWS Shield + AWS WAF**: A service that detects malicious traffic in real time and mitigates with AWS' web application firewall (WAF) to filter incoming traffic for the signatures of bad actors. Uses machine learning capabilities, and can recognize new threats as they evolve and proactively help defend the system against an ever-growing list of destructive vectors. 
+    - AWS' Web Application Firewall (WAF) works together with Amazon CloudFront (CDN) and an Application Load Balancer to block out malicious IPs using a web access control list (ACL). Works by having a blacklist of IPs that you define to block, and WAF will check if its from that IP. Only allow in IPs that are not on the list.
+    - Has "Standard" and "Advanced". Advanced is a paid service that provides detailed attack diagnostics and the ability to detect and mitigate sophisticated DDoS attacks, and integrates with other AWS services.
+
+  Other security services:
+  - **AWS Key Management Service (AWS KMS)**: perform encryption operations through the use of cryptographic keys. Can control which applications and services uses the keys, specify which IAM users and roles are able to manage keys, and the keys never leave AWS KMS.
+  - **Amazon Inspector**: Performs automated security assessments
+  - **Amazon GuardDuty**: A service that provides intelligent threat detection for your AWS infrastructure and resources. It identifies threats by continuously monitoring the network activity and account behavior within your AWS environment
+
 ## AWS' Global Networking (CDN and DNS services)
 - **AWS Route 53**: AWS's DNS
 - **AWS Cloudfront**: AWS' CDN
@@ -191,4 +203,193 @@ Factors to look at:
 - Source database can remain fully operational during the migration, hence minimising downtime for applications that rely on that database
 - Source and target database don't have to be of the same type
   - same type of source and target database (e.g. MySQL to MySQL) is called "homogenous databases"
-  - different types of source and target database (e.g. MySQL to PostgresSQL) are called "heterogenous databases". Schema structure, data types and database code might differ, hence a 2 step process might be necessary. 1st to convert them in the AWS Schema Conversion Tool
+  - different types of source and target database (e.g. MySQL to PostgresSQL) are called "heterogenous databases". Schema structure, data types and database code might differ, hence a 2 step process might be necessary. 1st to convert them in the AWS Schema Conversion Tool (to convert the schema structure and the database code)
+- Other uses for DMS:
+  - Development and test database migrations: Enabling developers to test applications against production data without affecting production users
+  - Database consolidation: Combining several databases into a single database
+  - Continuous replication: Sending ongoing copies of your data to other target sources instead of doing a one-time migration
+
+## Other AWS Database Solutions (Accelerators, Immutable Databases)
+1. **Amazon DocumentDB**: a document database service that supports MongoDB workloads. (MongoDB is a document database program.) key-value pair database that can support more than just small attributes. full content management system great for content management, catalogs, user profiles. 
+
+2. **Amazon Neptune**: a graph database service, good to build and run applications that work with highly connected datasets, such as recommendation engines, fraud detection, and knowledge graphs.
+
+3. **Amazon Quantum Ledger Database (Amazon QLDB)**: a ledger database service that is immutable, good for financial records or supply chain data. Can review a complete history of all the changes that have been made to your application data.
+
+4. **Amazon Managed Blockchain**: a service to create and manage blockchain networks with open-source frameworks. Blockchain is a distributed ledger system that lets multiple parties run transactions and share data without a central authority.
+
+5. **Amazon ElastiCache**: a service that adds caching layers on top of your databases to help improve the read times of common requests. Supports two types of data stores: Redis and Memcached.
+
+6. **Amazon DynamoDB Accelerator (DAX)** is an in-memory cache for DynamoDB (noSQL db). Helps improve response times from single-digit milliseconds to microseconds.
+
+
+## Shared Security in AWS Cloud
+AWS is responsible for security OF the cloud, and customers are responsible for security IN the cloud. 
+![shared_security](images/shared_security.png)
+
+Compliance reports to the various industry standards can be found through the [AWS Artifact reports and agreements](https://aws.amazon.com/artifact).
+
+- **AWS Artifact Agreements**
+  - When your company needs to <u>sign an agreement with AWS</u> regarding your use of certain types of information throughout AWS services. You can do this through AWS Artifact Agreements. 
+  - In AWS Artifact Agreements, you can review, accept, and manage agreements for an individual account and for all your accounts in AWS Organizations. Different types of agreements are offered to address the needs of customers who are subject to specific regulations, such as the Health Insurance Portability and Accountability Act (HIPAA).
+- **AWS Artifact Reports**
+  - When a member of your company’s development team is building an application and <u>needs more information about their responsibility for complying with certain regulatory standards</u>. You can advise them to access this information in AWS Artifact Reports. AWS Artifact Reports provide compliance reports from third-party auditors. These auditors have tested and verified that AWS is compliant with a variety of global, regional, and industry-specific security standards and regulations. AWS Artifact Reports remains up to date with the latest reports released. You can provide the AWS audit artifacts to your auditors or regulators as evidence of AWS security controls. 
+- **[Customer Compliance Centre](https://aws.amazon.com/compliance/customer-center/)**
+  - Resources to help you learn more about AWS compliance
+  - Access compliance whitepapers and documentation
+- **[Compliance reports and certifications](https://aws.amazon.com/compliance/programs/)**
+  - e.g. AWS security and compliance documents, such as AWS ISO certifications, Payment Card Industry (PCI) reports, and Service Organization Control (SOC) reports
+
+
+
+## AWS Identity and Access Management (IAM)
+For managing access control for your cloud (always remember to use the least privilege principle when scoping for roles for people)
+
+|Types of Functionalities|Key Functions / Features|
+|------|------|
+|Root User |- Main admin user </br>- Best practice to not use this root user for day-to-day task, and set up Multi-Factor Authentication|
+|Users|- an identity created in AWS </br>- Represents the person or application that interacts with AWS services and resources, and consists of a name and credentials</br>- No permissions when first created, will need to assign permissions before it can start to work</br>- Each person accessing the cloud should have their own unique user|
+|IAM Policies|- A document (json file) that allows or denies permissions to AWS services and resources</br>- Good to grant access privilege based on least privilege principle. e.g. grant access to specific bucket instead of all the buckets in that S3</br>- Has "allow" or "deny" permissions as possible *effects* in the json policy document|
+|Group|- Collection of IAM users</br>- When an IAM policy to a group, all users in the group are granted permissions specified by the policy. They can then add IAM users to the group and then attach permissions at the group level (e.g there is a cashier group that all cashiers can be added inside for acces to the cash register)|
+|Roles|- An identity that user can assume to gain temporary access to permissions </br>- Before an IAM user, application, or service can assume an IAM role, they must be granted permissions to switch to the role. When someone assumes an IAM role, they abandon all previous permissions that they had under a previous role and assume the permissions of the new role. </br>- Ideal for situations in which access to services or resources needs to be granted temporarily, instead of long-term.</br>- Able to do identity federation, aka able to use 1 login to login to corporate access and AWS based on the role assigned|
+
+## AWS Organisation (to manage multiple AWS Accounts)
+- To consolidate and manage multiple AWS accounts within a central location
+- group accounts into organizational units (OUs) to make it easier to manage accounts with similar business or security requirements
+- Uses [service control policies (SCPs)](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html) to easily give access and place restrictions on the AWS services, resources, and individual API actions that users and roles in each account can access. When you apply a policy to an OU, all the accounts in the OU automatically inherit the permissions specified in the policy.  
+- An SCP affects all IAM users, groups, and roles within an account, including the AWS account root user. (Whereas the IAM cannot apply to the AWS account root user)
+- Can continue to provide access for users, groups, and roles through IAM even though for accounts in an OU
+![OU](images/organisation_unit.png)
+
+## AWS CloudWatch - Metrics and Monitoring
+- A web service that enables you to monitor and manage various metrics and configure alarm actions based on data from those metrics
+- AWS services send metrics to CloudWatch. CloudWatch then uses these metrics to create graphs automatically that show how performance has changed over time. 
+- Can create alarms and set thresholds to notify you (e.g. to create a CloudWatch alarm that automatically stops an EC2 instance when the CPU utilization percentage has remained below a certain threshold for a specified period in case it is left on by accident)
+
+## AWS CloudTrail - API cloud auditing that logs all changes
+- Records all API calls for your account, can view a complete history of what happened by who, when and how it was done 
+- Events are typically updated in CloudTrail within 15 minutes after an API call
+- Can use with CloudTrail insights to automatically detect unusual API activities in your AWS account
+
+## AWS Trusted Advisor - checks settings and recommends best practices
+- Trusted Advisor compares its findings to AWS best practices in five categories: cost optimization, performance, security, fault tolerance, and service limits. 
+
+## AWS Pricing and Budget 
+- 3 types of free tiers available for different kinds of products:
+  - Always Free (so long as within some limits)
+  - 12 months Free
+  - Trials
+- 3 types of charging models:
+  1. Pay for what you use (on-demand): pay for exactly the amount of resources that you actually use, without requiring long-term contracts or complex licensing.
+  2. Pay less when reserved: reserve upfront
+  3. Pay less with more volume usage: volume-based or tiered pricing discounts (e.g. S3 cheaper per GB as you store more)
+- Can use the consolidated billing ability to see the charges across different AWS accounts in the organisation (default is up to 4 AWS root account for 1 organisation but can request for increase if needed). Bulk pricing discounts can be accumulated and shared across AWS accounts in the organsation. 
+
+[link to billing dashboard](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/billing-what-is.html)
+
+Examples:
+  - AWS Lambda: Charged based on the number of requests for your functions and the time that it takes for them to run (compute time).
+  - EC2: Charged based on compute time - duration that the instances are running 
+  - S3: Charged on number of requests to add or copy objects into a bucket, number of requests to retrieve objects from a bucket, amount of storage space used, any storage management features (e.g. S3 inventory, analytics, and object tagging)
+
+- **AWS Budgets** (Management console > Billing > Budgets): Can set budget for cost, usage and see potential forecasted cost based on current usage patterns. Good to set alerts if you might exceed your budget
+- **AWS Cost Explorer**: can tag different services and group the services (e.g. by customer or projects) for easy viewing and cost analysis.
+
+## AWS Support
+- Different tiers of support: Basic, Developer, Business, Enterprise On-Ramp, Enterprise
+- Support plans have pay-by-the-month pricing and require no long-term contracts.
+- Enterprise / Enterprise on-ramp have Technical Account Manager (TAM) that looks at 6 pillars of optimisation: 
+  1. Security 
+  2. Operational Excellence
+  3. Reliability
+  4. Performance Efficiency
+  5. Cost optimisation
+  6. Sustainability
+- Enterprise has a dedicated TAM and response time of <=15 min for business critical issues, Enterprise On-Ramp provides access to a pool of TAMs and <=30min for business critical issues.
+- Business support includs all AWS trusted advisor checks
+
+[link to support plans](https://aws.amazon.com/premiumsupport/plans/)
+
+## Cloud Migration
+### AWS Cloud Adoption Framework
+6 "perspectives" or areas of focus
+
+<u>**Business Capabilities**</u>
+1. Business
+    - Business case linked to key business results
+    - example stakeholders: budget owners, strategy stakeholders, finance/business managers
+2. People
+    - Staffing and training people
+    - example stakeholders: Human resources, Staffing, People managers
+3. Governance
+    - Implement best practices for IT governance and support business processes with technology.
+    - example stakeholders: Chief Information Officer (CIO), Program managers, Enterprise architects, Business analysts, Portfolio managers
+
+<u>**Technical Capabilities**</u>
+
+4. Platform
+    - Principles and patterns for implementing new solutions on the cloud, and migrating on-premises workloads to the cloud
+    - example stakeholders: Chief Technology Officer (CTO), IT managers, Solutions architects
+5. Operations
+    - run, use, operate, and recover IT workloads to the level agreed upon with your business stakeholders
+    - example stakeholders: IT operations managers, IT support managers
+6. Security
+    - security objectives for visibility, auditability, control, and agility
+    - example stakeholders: Chief Information Security Officer (CISO), IT security managers, IT security analysts
+
+## [6 Migration Strategies](https://aws.amazon.com/blogs/enterprise-strategy/6-strategies-for-migrating-applications-to-the-cloud/)
+
+1. **Rehosting** — “lift-and-shift”, moving applications without any change
+    - In the scenario of a large legacy migration, in which the company is looking to implement its migration and scale quickly to meet a business case, the majority of applications are rehosted.
+2. **Replatforming —** “lift-tinker-and-shift”, selectively optimizing aspects of an application to achieve benefits in the cloud without changing the core architecture of the application
+3. **Repurchasing** — Moving to a different product (e.g. contract for the existing vendor has expired)
+4. **Retain** — Usually this means “revisit” or do nothing (for now)
+5. **Retire** — Get rid of applications that are no longer required
+6. **Refactoring / Re-architecting** — Re-imagining how the application is architected and developed, typically using cloud-native features. Will involve the redevelopment of the applications.
+
+## AWS Physical Migration Options
+
+|Type|Specs|Details|
+|----|-----|-------|
+|AWS Snowcone| 2 CPUs, 4 GB of memory, and up to 14 TB of usable storage  small, rugged, and secure edge computing and data transfer device|
+|AWS Snowball Edge Storage Optimized| Storage: 80 TB of hard disk drive (HDD) capacity for block volumes and Amazon S3 compatible object storage, and 1 TB of SATA solid state drive (SSD) for block volumes. </br></br> Compute: 40 vCPUs, and 80 GiB of memory to support Amazon EC2 sbe1 instances (equivalent to C5) |  well suited for large-scale data migrations and recurring transfer workflows, in addition to local computing with higher capacity needs |
+| AWS Snowball Edge Compute Optimized | Storage: 80 TB usable HDD capacity for Amazon S3 compatible object storage or Amazon EBS compatible block volumes and 28 TB of usable NVMe SSD capacity for Amazon EBS compatible block volumes. </br></br>Compute: 104 vCPUs, 416 GiB of memory, and an optional NVIDIA Tesla V100 GPU. Devices run Amazon EC2 sbe-c and sbe-g instances, which are equivalent to C5, M5a, G3, and P3 instances. | powerful computing resources for use cases such as machine learning, full motion video analysis, analytics, and local computing stacks.|
+|AWS Snowmobile| 100 petabytes of data per Snowmobile, a 45-foot long ruggedized shipping container, pulled by a semi trailer truck | exabyte-scale data transfer service used to move large amounts of data to AWS |
+
+## Other types of AWS Services
+- Amazon SageMaker: Quickly build, train, and deploy machine learning models at scale
+- Amazon Augmented AI (or Amazon A2I): a machine learning platform
+- Amazon Transcribe: Convert speech to text
+- Amazon Comprehend: Discover patterns in text
+- Amazon Fraud Detector: Identify potentially fraudulent online activities
+- Amazon Lex: Build voice and text chatbots
+- Amazon Textract: Extracting text and data from documents (OCR) to make them more usable for your enterprise instead of them just being locked away in a repository
+- AWS DeepRacer: autonomous 1/18 scale race car that you can use to test reinforcement learning models
+- AWS Ground Station: Satellite as a service 
+
+## AWS Well-Architected Framework
+1. Operational excellence
+    - run and monitor cloud operations, and continuously improve the processes and procedures to make sure they run effectively. Design principles include code, annotating documentation, anticipating failure, making frequent small but reversible changes
+2. Security 
+    -  ability to protect information, systems, and assets while delivering business value through risk assessments and mitigation strategies. best practices include automate security best practices when possible, applying security at all layers, and protect data in transit and at rest.
+3. Reliability
+    - Recover from infrastructure or service disruptions
+    - Dynamically acquire computing resources to meet demand
+    - Mitigate disruptions such as misconfigurations or transient network issues
+    - Testing recovery procedures, scaling horizontally to increase aggregate system availability, and automatically recovering from failure.
+4. Performance efficiency
+    - ability to use computing resources efficiently to meet system requirements and to maintain that efficiency as demand changes and technologies evolve. 
+    - Evaluating the performance efficiency of your architecture includes experimenting more often, using serverless architectures, and designing systems to be able to go global in minutes.
+5. Cost optimisation
+    - ability to run systems to deliver business value at the lowest price point. 
+    - Cost optimization includes adopting a consumption model, analyzing and attributing expenditure, and using managed services to reduce the cost of ownership.
+6. Sustainability
+    - ability to continually improve sustainability impacts by reducing energy consumption and increasing efficiency across all components of a workload by maximizing the benefits from the provisioned resources and minimizing the total resources required
+
+## Main 6 benefits of cloud
+1. Trade upfront expense for variable expense.
+2. Benefit from massive economies of scale.
+3. Stop guessing capacity.
+4. Increase speed and agility.
+5. Stop spending money running and maintaining data centers.
+6. Go global in minutes. (can use AWS CloudFormation for this)
