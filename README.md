@@ -1,4 +1,4 @@
-# AWS certification notes-Solution Architect AssociateC03
+# [WIP] AWS certification notes-Solution Architect AssociateC03
 
 ## EC2 - Elastic Cloud Computing
 - Select based **compute, memory, storage** requirements
